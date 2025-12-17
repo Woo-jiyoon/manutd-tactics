@@ -2,49 +2,44 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { addVideo } from '../actions'; // 👈 새로 만든 Server Action을 가져옵니다.
+import { addVideo } from '../actions'; 
 
 export default function UploadPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  // 입력값들을 저장할 통
   const [formData, setFormData] = useState({
     title: '',
     url: '',
-    author: '', // 기본 작성자
-    category: '전술',
+    author: '',
+    category: '전술', // 기본값
     description: '',
   });
 
-  // 1. 유튜브 링크에서 ID만 쏙 뽑아내는 마법의 함수
   const extractVideoId = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
-  // 2. 업로드 버튼 눌렀을 때 실행되는 함수
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // 화면 새로고침 방지
+    e.preventDefault();
     setLoading(true);
 
-    // 작성자 이름이 비어있거나 공백만 있는지 확인
-if (!formData.author.trim()) {
-  alert('작성자 이름을 입력해주세요!');
-  setLoading(false);
-  return;
-}
-
-    const videoId = extractVideoId(formData.url);
-
-    if (!videoId) {
-      alert('올바른 유튜브 링크가 아닙니다! (예: https://youtu.be/...)');
+    if (!formData.author.trim()) {
+      alert('작성자 이름을 입력해주세요!');
       setLoading(false);
       return;
     }
 
-    // 🔥 변경된 부분: Server Action을 호출하여 DB 저장 및 캐시 무효화 처리
+    const videoId = extractVideoId(formData.url);
+
+    if (!videoId) {
+      alert('올바른 유튜브 링크가 아닙니다!');
+      setLoading(false);
+      return;
+    }
+
     const result = await addVideo({
       title: formData.title,
       videoId: videoId,
@@ -52,15 +47,11 @@ if (!formData.author.trim()) {
       category: formData.category,
       description: formData.description,
     });
-    // -------------------------------------------------------------------
 
     if (!result.success) {
-      alert('업로드 실패 ㅠㅠ: ' + result.message);
+      alert('업로드 실패: ' + result.message);
     } else {
       alert(result.message + ' 전술 페이지로 이동합니다.');
-      
-      // Server Action에서 캐시를 무효화했기 때문에,
-      // 여기서는 이동만 시켜주면 됩니다. (router.refresh() 불필요)
       router.push('/tactics');
     }
     setLoading(false);
@@ -76,7 +67,6 @@ if (!formData.author.trim()) {
 
         <form onSubmit={handleSubmit} className="bg-white/5 border border-white/10 p-8 rounded-2xl space-y-6 shadow-2xl">
           
-          {/* 제목 입력 */}
           <div>
             <label className="block text-sm text-gray-400 mb-2">영상 제목</label>
             <input
@@ -88,7 +78,6 @@ if (!formData.author.trim()) {
             />
           </div>
 
-          {/* 유튜브 링크 입력 */}
           <div>
             <label className="block text-sm text-gray-400 mb-2">유튜브 링크 (URL)</label>
             <input
@@ -98,21 +87,21 @@ if (!formData.author.trim()) {
               placeholder="https://youtu.be/..."
               onChange={(e) => setFormData({...formData, url: e.target.value})}
             />
-            <p className="text-xs text-gray-500 mt-2">유튜브 주소를 그대로 복사해서 붙여넣으세요.</p>
           </div>
 
-          {/* 카테고리 & 작성자 */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-gray-400 mb-2">카테고리</label>
               <select 
-                className="w-full bg-black/50 border border-white/20 rounded-lg p-3 text-white focus:border-red-600 focus:outline-none appearance-none"
+                className="w-full bg-black/50 border border-white/20 rounded-lg p-3 text-white focus:border-red-600 focus:outline-none appearance-none cursor-pointer"
+                value={formData.category}
                 onChange={(e) => setFormData({...formData, category: e.target.value})}
               >
                 <option>전술</option>
                 <option>공격</option>
                 <option>수비</option>
                 <option>하이라이트</option>
+                <option>경기 영상</option> {/* 👈 여기에 경기 영상 옵션을 추가했습니다! */}
                 <option>기타</option>
               </select>
             </div>
@@ -127,22 +116,20 @@ if (!formData.author.trim()) {
             </div>
           </div>
 
-          {/* 설명 입력 */}
           <div>
             <label className="block text-sm text-gray-400 mb-2">코멘트 / 피드백 내용</label>
             <textarea
               rows={4}
               className="w-full bg-black/50 border border-white/20 rounded-lg p-3 text-white focus:border-red-600 focus:outline-none transition-colors"
-              placeholder="몇 분 몇 초를 보라고 적어주세요."
+              placeholder="영상에 대한 설명을 적어주세요."
               onChange={(e) => setFormData({...formData, description: e.target.value})}
             />
           </div>
 
-          {/* 업로드 버튼 */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-95 disabled:opacity-50"
           >
             {loading ? '업로드 중...' : '등록 완료 ✨'}
           </button>
