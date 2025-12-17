@@ -1,8 +1,8 @@
-'use client'; // 👈 사용자 입력을 받는 페이지라 필수!
+'use client'; 
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
+import { addVideo } from '../actions'; // 👈 새로 만든 Server Action을 가져옵니다.
 
 export default function UploadPage() {
   const router = useRouter();
@@ -37,23 +37,24 @@ export default function UploadPage() {
       return;
     }
 
-    // DB에 저장!
-    const { error } = await supabase.from('videos').insert([
-      {
-        title: formData.title,
-        video_id: videoId, // 추출한 ID 저장
-        author: formData.author,
-        category: formData.category,
-        description: formData.description,
-      },
-    ]);
+    // 🔥 변경된 부분: Server Action을 호출하여 DB 저장 및 캐시 무효화 처리
+    const result = await addVideo({
+      title: formData.title,
+      videoId: videoId,
+      author: formData.author,
+      category: formData.category,
+      description: formData.description,
+    });
+    // -------------------------------------------------------------------
 
-    if (error) {
-      alert('업로드 실패 ㅠㅠ: ' + error.message);
+    if (!result.success) {
+      alert('업로드 실패 ㅠㅠ: ' + result.message);
     } else {
-      alert('영상 등록 완료! 전술 페이지로 이동합니다.');
-      router.push('/tactics'); // 전술 페이지로 자동 이동
-      router.refresh(); // 데이터 새로고침
+      alert(result.message + ' 전술 페이지로 이동합니다.');
+      
+      // Server Action에서 캐시를 무효화했기 때문에,
+      // 여기서는 이동만 시켜주면 됩니다. (router.refresh() 불필요)
+      router.push('/tactics');
     }
     setLoading(false);
   };
