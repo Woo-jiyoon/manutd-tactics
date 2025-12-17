@@ -1,5 +1,7 @@
 import { supabase } from "@/lib/supabase"; // 👈 우리가 만든 열쇠 가져오기
 
+export const dynamic = 'force-dynamic';
+
 // 💡 중요: DB 통신을 위해 함수 앞에 'async'가 붙었습니다.
 export default async function TacticsPage() {
   
