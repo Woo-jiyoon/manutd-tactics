@@ -12,7 +12,7 @@ export default function UploadPage() {
   const [formData, setFormData] = useState({
     title: '',
     url: '',
-    author: 'Manager', // 기본 작성자
+    author: '', // 기본 작성자
     category: '전술',
     description: '',
   });
@@ -28,6 +28,13 @@ export default function UploadPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // 화면 새로고침 방지
     setLoading(true);
+
+    // 작성자 이름이 비어있거나 공백만 있는지 확인
+if (!formData.author.trim()) {
+  alert('작성자 이름을 입력해주세요!');
+  setLoading(false);
+  return;
+}
 
     const videoId = extractVideoId(formData.url);
 
