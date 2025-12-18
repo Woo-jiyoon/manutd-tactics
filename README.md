@@ -81,7 +81,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 npm run dev
 ```
 
-💡 개발 목표
+# 💡 개발 목표
 이 프로젝트는 길드 운영의 전문성을 높이고, 전술 공유의 장벽을 낮추기 위해 개발되었습니다. 단순히 보는 전술이 아닌, 함께 그리고 소통하는 **실전 지향적 데이터베이스**를 지향합니다.
 
 Glory Glory Man United! 🔴
